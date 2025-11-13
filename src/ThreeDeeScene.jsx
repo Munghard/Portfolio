@@ -1,12 +1,34 @@
-import { useEffect, useRef } from 'react';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import * as THREE from 'three';
-const clock = new THREE.Clock();
 
-const ThreeDeeScene = () => {
+const ThreeDeeScene = ({ delay, modelUrl }) => {
+
+  const [currentAnimation, setCurrentAnimation] = useState(0);
+  const [animations, setAnimations] = useState(null);
+  const [rotationY, setRotationY] = useState(120);
+
+  const gltfRef = useRef(null);
+  const mixerRef = useRef(null);
   const mountRef = useRef(null);
   const rendererRef = useRef(null);
+  const rotationYRef = useRef(0);
+
 
   useEffect(() => {
+    if (mixerRef.current && animations.length) {
+      mixerRef.current.stopAllAction();
+      mixerRef.current.clipAction(animations[currentAnimation]).reset().play();
+    }
+  }, [currentAnimation, animations]);
+
+  useEffect(() => {
+    rotationYRef.current = rotationY;
+  }, [rotationY]);
+
+  useEffect(() => {
+
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -23,28 +45,57 @@ const ThreeDeeScene = () => {
     mount.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // === Cube ===
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-
     // === Light ===
-    const light = new THREE.PointLight(0x00ff50, 2000);
-    light.position.set(0, 20, 0);
+    const light = new THREE.PointLight(0xffff50, 2000);
+    light.position.set(0, 20, 5);
     scene.add(light);
-    
-    const lightb = new THREE.PointLight(0x91E2FF, 100);
-    lightb.position.set(0, -20, 0);
+
+    const lightb = new THREE.PointLight(0xff5500, 100);
+    lightb.position.set(0, -20, 3);
     scene.add(lightb);
 
+    const lightc = new THREE.PointLight(0x0000ff, 1000);
+    lightc.position.set(-10, 0, 3);
+    scene.add(lightc);
+
+    //   LOAD MODEL
+    const loader = new GLTFLoader();
+    loader.load(modelUrl,
+      gltf => {
+        gltfRef.current = gltf;
+        gltf.scene.scale.set(1, 1, 1);
+        gltf.scene.position.y = -1;
+
+        const anims = gltf.animations;
+        setAnimations(anims);
+
+        if (anims && anims.length) {
+          const localMixer = new THREE.AnimationMixer(gltf.scene)
+          const action = localMixer.clipAction(anims[currentAnimation]);
+          action.play();
+          mixerRef.current = localMixer;
+        }
+        // gltf.scene.rotation.y = THREE.MathUtils.degToRad(rotation);
+        scene.add(gltf.scene);
+      },
+      undefined,
+      (error) => {
+        console.error('Error loading model:', error);
+      }
+    );
+    const clock = new THREE.Clock();
     // === Animate ===
     const animate = () => {
-        const time = clock.getElapsedTime();
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
-      cube.position.x = Math.sin(time) * 2.5;
+      const delta = clock.getDelta();
+      const time = clock.getElapsedTime();
+      if (gltfRef.current) {
+        gltfRef.current.scene.rotation.y = THREE.MathUtils.degToRad(rotationYRef.current);
+        // gltf.rotation.x += 0.01;
+        // gltf.scene.rotation.y += 0.01;
+        // gltf.scene.position.x = Math.sin(time) * 2.5;
+      }
       renderer.render(scene, camera);
+      if (mixerRef.current) mixerRef.current.update(delta);
     };
     renderer.setAnimationLoop(animate);
 
@@ -70,14 +121,53 @@ const ThreeDeeScene = () => {
   }, []);
 
   return (
-    <div
-      ref={mountRef}
-      style={{
-        width: '100%',
-        height: '100%',
-        minHeight: '100px', // optional minimum
-      }}
-    />
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, delay: delay / 5 }}
+      viewport={{ once: false, amount: 0.3 }}
+      className='flex flex-col items-center p-5 border-2 border-zinc-700 bg-zinc-800 w-fit rounded-sm m-4 shadow-xl shadow-black/70'>
+      <h1 className='text-green-500 text-3xl'>{modelUrl.split('/')[3].split('.')[0]}</h1>
+      <div
+        ref={mountRef}
+        style={{
+          width: '300px',
+          height: '100%',
+          minHeight: '300px', // optional minimum
+        }}
+      />
+      <div className='flex flex-col my-5 gap-2 border-2 border-zinc-700 p-2 w-full items-center'>
+        <label className='text-zinc-400'> Rotation</label>
+        <input
+          min={90}
+          max={450}
+          type='range'
+          value={rotationY}
+          onChange={(e) => { setRotationY(Number(e.target.value)) }}
+        ></input>
+      </div>
+      {(gltfRef.current && animations) &&
+        <>
+          <div className='flex flex-col gap-2   border-2 border-zinc-700 p-2  w-full items-center'>
+            <label className='text-zinc-400'> Animation: {animations[currentAnimation]?.name} </label>
+            <div className="flex items-center">
+              <button
+                className='text-sm p-2 bg-zinc-700'
+                onClick={() => setCurrentAnimation(a => Math.max(0, a - 1))}>◀</button>
+              <input
+                type="number"
+                value={currentAnimation}
+                onChange={e => setCurrentAnimation(Number(e.target.value))}
+                className="w-16 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <button
+                className='text-sm p-2 bg-zinc-700'
+                onClick={() => setCurrentAnimation(a => Math.min(animations.length - 1, a + 1))}>▶</button>
+            </div>
+          </div>
+        </>
+      }
+    </motion.div>
   );
 };
 

@@ -15,6 +15,9 @@ import image4 from './assets/image4.png'
 import image5 from './assets/image5.png'
 import image6 from './assets/image6.png'
 import ThreeDeeScene from './ThreeDeeScene'
+import Panel from './Panel'
+import PlatformLink from './PlatformLink'
+
 
 function App() {
 
@@ -43,7 +46,7 @@ function App() {
               initial={{ opacity: 0, x: 200 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 2, type: 'spring' }}
-              className='text-3xl text-green-400 font-semibold me-auto mt-0 ms-1'>Portfolio</motion.h1>
+              className='text-3xl text-green-500 font-semibold me-auto mt-0 ms-1'>Portfolio</motion.h1>
           </div>
         </motion.div >
         <div className=''>
@@ -56,11 +59,21 @@ function App() {
               Hello! I'm Niklas Granqvist, a passionate developer with a knack for creating dynamic and responsive web applications. Welcome to my portfolio! Bellow you can find some recent projects i worked on.
             </p>
           </motion.div>
+
+          <div className='flex flex-col gap-2 mt-10'>
+            <h1 className='text-xl text-green-500 font-bold'>Platform link components</h1>
+            <div className='flex gap-4 flex-wrap'>
+              <PlatformLink title={'Instagram'} description={"Photo and video sharing app."} Url={'https://instagram.com'} iconUrl={'https://www.instagram.com/static/images/ico/favicon-200.png/ab6eff595bb1.png'} color={'pink'} ></PlatformLink>
+              <PlatformLink title={'Spotify'} description={"Music streaming service."} Url={'https://spotify.com'} iconUrl={'https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green-300x300.png'} color={'green'} ></PlatformLink>
+              <PlatformLink title={'Facebook'} description={"Social networking platform."} Url={'https://facebook.com'} iconUrl={'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/2048px-2021_Facebook_icon.svg.png'} color={'cyan'} ></PlatformLink>
+            </div>
+          </div>
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 2 }}
-            className='flex flex-col gap-2'>
+            className='flex flex-col gap-2 mt-10'>
             <h1 className='text-xl text-green-500 font-bold'>Gltf renderer component</h1>
             <p className='text-md text-gray-300 mb-5 font-medium '>A 3d scene renderer react component with animation playing and animation selector and rotation control.</p>
             <div className='flex flex-wrap gap-2 justify-center'>

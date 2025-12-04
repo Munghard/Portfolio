@@ -126,7 +126,7 @@ const ThreeDeeScene = ({ delay, modelUrl }) => {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 1, delay: delay / 5 }}
       viewport={{ once: false, amount: 0.3 }}
-      className='flex flex-col items-center p-5 border-2 border-zinc-700 bg-zinc-800 w-fit rounded-sm m-4 shadow-xl shadow-black/70'>
+      className='flex flex-col items-center p-5 border-2 border-green-800 bg-zinc-800 w-fit rounded-sm m-4 shadow-[0_30px_30px_rgba(0,0,0,0.6),inset_0_0_64px_rgba(0,0,0,0.6)]'>
       <h1 className='text-green-500 text-3xl'>{modelUrl.split('/')[3].split('.')[0]}</h1>
       <div
         ref={mountRef}
